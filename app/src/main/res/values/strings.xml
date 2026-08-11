@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Sesli Hatırlatıcı</string>
+    <string name="stop_reminder">Hatırlatmayı durdur</string>
+    <string name="active_reminder">Aktif hatırlatma çalıyor</string>
+</resources>

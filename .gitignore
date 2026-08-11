@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+/build/
+/app/build/
+
+# Local configuration
+local.properties
+
+# Local SDK / JDK / build artifacts
+android-sdk/
+jdk17/
+gradle-extract/
+gradle-*.zip
+
+# Android Studio
+.idea/
+*.iml
+
+# Misc
+.DS_Store
