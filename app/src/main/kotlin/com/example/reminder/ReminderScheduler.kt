@@ -13,8 +13,11 @@ object ReminderScheduler {
     const val EXTRA_LAST_NAME = "last_name"
     const val EXTRA_MESSAGE = "message"
     const val EXTRA_MELODY = "melody"
+    const val EXTRA_SOUND_URI = "sound_uri"
     const val EXTRA_DAY = "day"
     const val EXTRA_TIME = "time"
+    const val EXTRA_IS_SNOOZE = "is_snooze"
+    const val DEFAULT_SNOOZE_MINUTES = 10
 
     fun scheduleAll(context: Context, reminders: List<Reminder>) {
         cancelAll(context, reminders)
@@ -63,6 +66,7 @@ object ReminderScheduler {
             putExtra(EXTRA_LAST_NAME, reminder.lastName)
             putExtra(EXTRA_MESSAGE, reminder.message)
             putExtra(EXTRA_MELODY, reminder.melody)
+            putExtra(EXTRA_SOUND_URI, reminder.soundUri)
             putExtra(EXTRA_DAY, day)
             putExtra(EXTRA_TIME, time)
         }
@@ -73,6 +77,30 @@ object ReminderScheduler {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
+    }
+
+    /** Schedules a one-off re-ring [minutes] from now, independent of the weekly recurring slots. */
+    fun scheduleSnooze(context: Context, reminder: Reminder, minutes: Int = DEFAULT_SNOOZE_MINUTES) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val triggerTime = System.currentTimeMillis() + minutes * 60_000L
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            action = ACTION_REMINDER_ALARM
+            putExtra(EXTRA_REMINDER_ID, reminder.id)
+            putExtra(EXTRA_FIRST_NAME, reminder.firstName)
+            putExtra(EXTRA_LAST_NAME, reminder.lastName)
+            putExtra(EXTRA_MESSAGE, reminder.message)
+            putExtra(EXTRA_MELODY, reminder.melody)
+            putExtra(EXTRA_SOUND_URI, reminder.soundUri)
+            putExtra(EXTRA_IS_SNOOZE, true)
+        }
+        val requestCode = ("${reminder.id}:snooze").hashCode()
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
     }
 
     private fun calculateNextTrigger(day: Int, time: String): Long {
